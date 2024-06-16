@@ -11,6 +11,10 @@
 #include <KSharedConfig>
 #include <QKeySequence>
 
+extern "C" {
+#include <libwacom/libwacom.h>
+}
+
 #include "devicesmodel.h"
 
 class TabletSettings;

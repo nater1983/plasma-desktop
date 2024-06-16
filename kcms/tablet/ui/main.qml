@@ -269,32 +269,34 @@ SimpleKCM {
         }
 
         Repeater {
-            model: [
-                { value: 0x14b, text: i18nd("kcm_tablet", "Pen button 1:") },
-                { value: 0x14c, text: i18nd("kcm_tablet", "Pen button 2:") },
-                { value: 0x149, text: i18nd("kcm_tablet", "Pen button 3:") }
-            ] // BTN_STYLUS, BTN_STYLUS2, BTN_STYLUS3
+            model: StylusButtonsModel {
+                device: form.device
+            }
 
             delegate: KeySequenceItem {
                 id: seq
-                Kirigami.FormData.label: (pressed ? "<b>" : "") + modelData.text + (pressed ? "</b>" : "")
+
+                required property string text
+                required property int value
+
+                Kirigami.FormData.label: (pressed ? "<b>" : "") + text + (pressed ? "</b>" : "")
                 property bool pressed: false
 
                 Connections {
                     target: tabletEvents
                     function onToolButtonReceived(hardware_serial_hi, hardware_serial_lo, button, pressed) {
-                        if (button !== modelData.value) {
+                        if (button !== value) {
                             return;
                         }
                         seq.pressed = pressed
                     }
                 }
 
-                keySequence: kcm.toolButtonMapping(form.device.name, modelData.value)
+                keySequence: kcm.toolButtonMapping(form.device?.name, value)
                 Connections {
                     target: kcm
                     function onSettingsRestored() {
-                        seq.keySequence = kcm.toolButtonMapping(form.device.name, modelData.value)
+                        seq.keySequence = kcm.toolButtonMapping(form.device.name, value)
                     }
                 }
 
@@ -305,7 +307,7 @@ SimpleKCM {
                 checkForConflictsAgainst: ShortcutType.None
 
                 onCaptureFinished: {
-                    kcm.assignToolButtonMapping(form.device.name, modelData.value, keySequence)
+                    kcm.assignToolButtonMapping(form.device.name, value, keySequence)
                 }
             }
         }

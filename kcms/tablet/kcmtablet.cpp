@@ -165,6 +165,91 @@ public:
     }
 };
 
+class StylusButtonsModel : public QStandardItemModel
+{
+    Q_OBJECT
+
+    Q_PROPERTY(InputDevice *device READ device WRITE setDevice NOTIFY deviceChanged)
+
+public:
+    StylusButtonsModel()
+    {
+        m_db = libwacom_database_new();
+
+        setItemRoleNames({{Qt::DisplayRole, "text"}, {Qt::UserRole, "value"}});
+        recalculateItems();
+    }
+
+    InputDevice *device() const
+    {
+        return m_device;
+    }
+
+    void setDevice(InputDevice *device)
+    {
+        if (m_device != device) {
+            m_device = device;
+            recalculateItems();
+            Q_EMIT deviceChanged();
+        }
+    }
+
+Q_SIGNALS:
+    void deviceChanged();
+
+private:
+    void recalculateItems()
+    {
+        // Three is a good enough fallback when there's no stylus detected in the db
+        int numButtons = 3;
+        if (m_device) {
+            // TODO: use name instead?
+            const QString sysPath = QStringLiteral("/dev/input/%1").arg(m_device->sysName());
+
+            WacomError *error = libwacom_error_new();
+            auto device = libwacom_new_from_path(m_db, sysPath.toLatin1().constData(), WFALLBACK_GENERIC, error);
+
+            // TODO: report errors in log
+
+            int num_styli = 0;
+            const int *styli = libwacom_get_supported_styli(device, &num_styli);
+            if (num_styli > 0) {
+                auto stylus = libwacom_stylus_get_for_id(m_db, styli[0]);
+                if (stylus != nullptr) {
+                    numButtons = libwacom_stylus_get_num_buttons(stylus);
+                }
+            }
+        }
+
+        // It's not possible to have more than 3 stylus buttons reported
+        Q_ASSERT(numButtons <= 3);
+
+        clear();
+
+        for (int i = 0; i < numButtons; i++) {
+            auto item = new QStandardItem(i18n("Pen button %1:", i + 1));
+            switch (i) {
+            case 0:
+                item->setData(Qt::UserRole, 0x14b); // BTN_STYLUS
+                break;
+            case 1:
+                item->setData(Qt::UserRole, 0x14c); // BTN_STYLUS2
+                break;
+            case 2:
+                item->setData(Qt::UserRole, 0x149); // BTN_STYLUS3
+                break;
+            default:
+                Q_UNREACHABLE();
+            }
+            appendRow(item);
+        }
+    }
+
+    WacomDeviceDatabase *m_db = nullptr;
+    InputDevice *m_device = nullptr;
+    WacomDevice *m_databaseDevice = nullptr;
+};
+
 Tablet::Tablet(QObject *parent, const KPluginMetaData &metaData)
     : KQuickManagedConfigModule(parent, metaData)
     , m_toolsModel(new DevicesModel("tabletTool", this))
@@ -173,6 +258,7 @@ Tablet::Tablet(QObject *parent, const KPluginMetaData &metaData)
     qmlRegisterType<OutputsModel>("org.kde.plasma.tablet.kcm", 1, 0, "OutputsModel");
     qmlRegisterType<OrientationsModel>("org.kde.plasma.tablet.kcm", 1, 0, "OrientationsModel");
     qmlRegisterType<OutputsFittingModel>("org.kde.plasma.tablet.kcm", 1, 1, "OutputsFittingModel");
+    qmlRegisterType<StylusButtonsModel>("org.kde.plasma.tablet.kcm", 1, 1, "StylusButtonsModel");
     qmlRegisterType<TabletEvents>("org.kde.plasma.tablet.kcm", 1, 1, "TabletEvents");
     qmlRegisterAnonymousType<InputDevice>("org.kde.plasma.tablet.kcm", 1);
 
@@ -181,7 +267,10 @@ Tablet::Tablet(QObject *parent, const KPluginMetaData &metaData)
     connect(this, &Tablet::settingsRestored, this, &Tablet::refreshNeedsSave);
 }
 
-Tablet::~Tablet() = default;
+Tablet::~Tablet()
+{
+    // libwacom_database_destroy(m_db);
+}
 
 void Tablet::refreshNeedsSave()
 {
