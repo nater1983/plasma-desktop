@@ -7,6 +7,7 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15 as QQC2
+import QtQuick.Templates as T
 import Qt5Compat.GraphicalEffects
 
 import org.kde.plasma.components 3.0 as PlasmaComponents3
@@ -15,7 +16,7 @@ import org.kde.kirigami 2.20 as Kirigami
 
 import org.kde.breeze.components
 
-Item {
+T.Pane {
     id: root
 
     // If we're using software rendering, draw outlines instead of shadows
