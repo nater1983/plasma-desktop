@@ -24,7 +24,7 @@ SessionManagementScreen {
     property alias showPassword: passwordBox.showPassword
 
     //the y position that should be ensured visible when the on screen keyboard is visible
-    property int visibleBoundary: mapFromItem(loginButton, 0, 0).y
+    property real visibleBoundary: mapFromItem(loginButton, 0, 0).y
     onHeightChanged: visibleBoundary = mapFromItem(loginButton, 0, 0).y + loginButton.height + Kirigami.Units.smallSpacing
     /*
      * Login has been requested with the following username and password
@@ -55,6 +55,7 @@ SessionManagementScreen {
 
     RowLayout {
         Layout.fillWidth: true
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
 
         PlasmaExtras.PasswordField {
             id: passwordBox
