@@ -5,7 +5,8 @@
 */
 
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls as QQC
+import QtQuick.Templates as T
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 
@@ -18,7 +19,7 @@ import org.kde.kscreenlocker as ScreenLocker
 import org.kde.plasma.private.sessions
 import org.kde.breeze.components
 
-MouseArea {
+T.Page {
     id: root
     property bool debug: false
     property string notification
@@ -56,15 +57,7 @@ MouseArea {
     implicitWidth: 800
     implicitHeight: 600
 
-    x: parent.x
-    y: parent.y
-    width: parent.width
-    height: parent.height
-    hoverEnabled: true
     cursorShape: uiVisible ? Qt.ArrowCursor : Qt.BlankCursor
-    drag.filterChildren: true
-    onPressed: uiVisible = true;
-    onPositionChanged: uiVisible = true;
     onUiVisibleChanged: {
         if (blockUI) {
             fadeoutTimer.running = false;
@@ -81,6 +74,18 @@ MouseArea {
             fadeoutTimer.restart();
         }
     }
+
+    ActivityDetectionItem {
+        id: activity
+        parent: root
+        anchors.fill: parent
+        z: 99
+        onActiveChanged: {
+            root.uiVisible = true
+        }
+    }
+
+    Keys.forwardTo: activity
     Keys.onEscapePressed: {
         // If the escape key is pressed, kscreenlocker will turn off the screen.
         // We do not want to show the password prompt in this case.
@@ -92,10 +97,7 @@ MouseArea {
             root.clearPassword();
         }
     }
-    Keys.onPressed: event => {
-        uiVisible = true;
-        event.accepted = false;
-    }
+
     Timer {
         id: fadeoutTimer
         interval: 10000
@@ -248,7 +250,7 @@ MouseArea {
         }
     }
 
-    StackView {
+    QQC.StackView {
         id: mainStack
         anchors {
             left: parent.left
