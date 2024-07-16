@@ -29,6 +29,10 @@ SessionManagementScreen {
         }
     }
 
+    background: Rectangle {
+        color: "red"
+        opacity: 0.25
+    }
     contentItem: ColumnLayout {
         baselineOffset: height
         spacing: root.spacing
@@ -55,6 +59,7 @@ SessionManagementScreen {
             PlasmaExtras.PasswordField {
                 id: passwordBox
                 Layout.fillWidth: true
+                Layout.preferredHeight: Math.max(implicitHeight, loginButton.implicitHeight)
 
                 placeholderText: i18nd("plasma-desktop-sddm-theme", "Password")
                 focus: !root.usernameField.visible || lastUserName
@@ -67,7 +72,7 @@ SessionManagementScreen {
                 visible: root.usernameField.visible || userList.currentItem.needsPassword
 
                 Keys.onEscapePressed: {
-                    mainStack.currentItem.forceActiveFocus();
+                    root.forceActiveFocus();
                 }
 
                 //if empty and left or right is pressed change selection in user switch
@@ -86,11 +91,12 @@ SessionManagementScreen {
 
             PlasmaComponents3.Button {
                 id: loginButton
-                Accessible.name: i18nd("plasma-desktop-sddm-theme", "Log In")
-                Layout.preferredHeight: passwordBox.implicitHeight
-                Layout.preferredWidth: text.length === 0 ? loginButton.Layout.preferredHeight : -1
+                text: i18nd("plasma-desktop-sddm-theme", "Log In")
+                display: T.Button.IconOnly
+                Layout.preferredHeight: Math.max(implicitHeight, passwordBox.implicitHeight)
+                Layout.preferredWidth: display === T.Button.IconOnly ? loginButton.Layout.preferredHeight : -1
 
-                icon.name: text.length === 0 ? (root.LayoutMirroring.enabled ? "go-previous" : "go-next") : ""
+                icon.name: mirrored ? "go-previous" : "go-next"
 
                 text: root.usernameField.visible || userList.currentItem.needsPassword ? "" : i18n("Log In")
                 onClicked: requestLogin()

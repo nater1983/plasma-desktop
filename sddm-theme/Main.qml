@@ -68,7 +68,6 @@ T.Page {
     background: WallpaperFader {
         id: wallpaperFader
         visible: config.type === "image"
-        anchors.fill: parent
         state: root.uiVisible ? "on" : "off"
         source: Item {
             z: -1
@@ -123,7 +122,7 @@ T.Page {
     // Item for freeform layouting with animations and/or anchors
     // In Pane subclasses like Page, this is where child items go by default.
     contentItem: Item {
-        anchors.fill: parent // override normal contentItem handling
+        anchors.fill: parent // override normal contentItem size handling
         implicitWidth: Math.max(clock.implicitWidth, mainStack.implicitWidth)
         implicitHeight: clock.implicitHeight + mainStack.implicitHeight
     }
@@ -161,12 +160,12 @@ T.Page {
         id: mainStack
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.baseline: parent.verticalCenter
-        anchors.baselineOffset: currentItem?.getAnchorsBaselineOffset(inputPanel, mainStack) ?? 0
-        baselineOffset: currentItem ? currentItem.y + currentItem.baselineOffset : 0
+        anchors.baselineOffset: userListComponent.getAnchorsBaselineOffset(inputPanel, mainStack) ?? 0
+        baselineOffset: userListComponent.y + userListComponent.baselineOffset
         width: Math.min(parent.width, implicitWidth)
         height: Math.min(parent.height, implicitHeight)
-        implicitWidth: currentItem?.implicitWidth ?? 0
-        implicitHeight: currentItem?.implicitHeight ?? 0
+        implicitWidth: userListComponent.implicitWidth ?? 0
+        implicitHeight: userListComponent.implicitHeight ?? 0
         opacity: root.uiOpacity
         focus: true //StackView is an implicit focus scope, so we need to give this focus so the item inside will have it
 
@@ -281,8 +280,6 @@ T.Page {
         Login {
             usernameField.visible: true
             sessionIndex: sessionButton.currentIndex
-            height: implicitHeight
-            width: implicitWidth
 
             // using a model rather than a QObject list to avoid QTBUG-75900
             userListModel: ListModel {
