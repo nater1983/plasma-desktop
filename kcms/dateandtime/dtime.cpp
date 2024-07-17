@@ -27,6 +27,7 @@
 #include <KProcess>
 #include <KTreeWidgetSearchLine>
 #include <QDebug>
+#include <QProcess>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -44,6 +45,20 @@ Dtime::Dtime(QWidget *parent, bool haveTimeDated)
     , m_haveTimedated(haveTimeDated)
 {
     setupUi(this);
+
+    findNTPutility();
+
+    if (ntpUtility.isEmpty()) {
+        QString toolTip = i18n(
+            "No NTP utility has been found. "
+            "Install 'ntpdate' or 'rdate' command to enable automatic "
+            "updating of date and time.");
+        setDateTimeAuto->setEnabled(false);
+        setDateTimeAuto->setToolTip(toolTip);
+    } else {
+        setDateTimeAuto->setEnabled(true);
+        setDateTimeAuto->setToolTip({});
+    }
 
     connect(setDateTimeAuto, &QCheckBox::toggled, this, &Dtime::configChanged);
 
@@ -143,7 +158,8 @@ void Dtime::findNTPutility()
             return;
         }
     }
-
+    
+    ntpUtility.clear();
     qDebug() << "ntpUtility not found!";
 }
 
