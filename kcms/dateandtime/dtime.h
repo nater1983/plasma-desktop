@@ -13,6 +13,7 @@
 #include <QSpinBox>
 #include <QTime>
 #include <QTimer>
+#include <QString>
 #include <QWidget>
 
 #include <KDatePicker>
